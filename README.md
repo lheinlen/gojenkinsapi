@@ -1,4 +1,4 @@
-gojenkinsapi
-============
+Go Jenkins API!
+===============
 
-A Jenkins API client for Go
+A [Jenkins](http://jenkins-ci.org/) API client library for [Go](http://golang.org/)
