@@ -5,23 +5,47 @@ import (
 	"net/url"
 )
 type Client struct {
-	BaseUrl *url.URL
+	Username string
+	Password string
+	Host string
+	Scheme string
+	IgnoreSSLFailures bool
 }
 
-func NewClient(baseUrl string) (*Client, error) {
-	url, err := url.Parse(baseUrl)
-	if (err != nil) {
+func FromURL(jenkinsURL string) (*Client, error) {
+	u, err := url.Parse(jenkinsURL)
+	if err != nil {
 		return nil, err
 	}
 
-	if (url.Scheme == "") {
-		return nil, errors.New("Could not determine scheme from url: " + baseUrl)
+	var user string
+	var pass string
+	if u.User != nil {
+		user = u.User.Username()
+		pass, _ = u.User.Password()
 	}
 
-	if (url.Host == "") {
-		return nil, errors.New("Could not determine host from url: " + baseUrl)
-	}
+	client := &Client{Username:user, Password:pass, Host:u.Host, Scheme:u.Scheme}
 
-	client := &Client{BaseUrl:url}
+	err = client.validate()
+	if (err != nil) {
+		return nil, err
+	}
 	return client, nil
+}
+
+func (c *Client) validate() error {
+	if c.Scheme == "" {
+		return errors.New("Scheme (http/https) is required")
+	}
+
+	if c.Scheme != "http" && c.Scheme != "https" {
+		return errors.New("Unknown scheme: " + c.Scheme)
+	}
+
+	if c.Host == "" {
+		return errors.New("Host is required")
+	}
+
+	return nil
 }
